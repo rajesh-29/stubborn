@@ -1,0 +1,188 @@
+<!--
+/*
+* Project - stubborn
+* Author - Rajesh Borade
+* Description - It is a node server which returns stub response for given URL.
+* For other URLs, requests are forwarded to actual server configured in the forwarding settings.
+*/
+-->
+<!doctype html>
+<html data-ng-app="stubbornApp">
+
+<head>
+    <title>STUBBORN</title>
+    <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet">
+    <style>
+        body,textarea {
+            font-family: 'Droid Sans Mono', monospace; font-size: 11px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0-rc.2/angular.min.js"></script>
+    <script>
+        var stubbornApp = angular.module('stubbornApp', []);
+        stubbornApp.controller('MainController', function($scope, $http, $window) {
+            $scope.fetch = function() {
+                console.log("fetch() called...");
+                $scope.fwMessage = 'Please wait... Fetching...';
+                $scope.stubMessage = 'Please wait... Fetching...';
+                $http({
+                    method: "GET",
+                    url: "<%=serverDetails%>/forwardSettings"
+                }).then(
+                    function mySucces(response) {
+                        $scope.fwSettings = JSON.stringify(response.data, undefined, 4);
+                        console.log("Settings Service response - " + JSON.stringify(response.data));
+                        $scope.fwMessage = 'Fetch successful...';                        
+                    },
+                    function myError(response) {
+                        console.log("ERROR - " + response.status + " - " + JSON.stringify(response.data));
+                        $scope.fwMessage = 'ERROR - ' + response.status + " - " + JSON.stringify(response.data);
+                    }
+                );
+                $http({
+                    method: "GET",
+                    url: "<%=serverDetails%>/stub"
+                }).then(
+                    function mySucces(response) {
+                        $scope.stub = JSON.stringify(response.data, undefined, 4);
+                        console.log("Stub Service response - " + JSON.stringify(response.data));
+                        $scope.stubMessage = 'Fetch successful...';                        
+                    },
+                    function myError(response) {
+                        console.log("ERROR - " + response.status + " - " + JSON.stringify(response.data));
+                        $scope.stubMessage = 'ERROR - ' + response.status + " - " + JSON.stringify(response.data);
+                    }
+                );
+            };
+            $scope.save = function() {
+                console.log("save() called...");
+                $scope.fwMessage = 'Please wait... Saving...';
+                $scope.stubMessage = 'Please wait... Saving...';
+                $http({
+                    method: "PUT",
+                    url: "<%=serverDetails%>/saveForwardSettings",
+                    data : JSON.parse($scope.fwSettings)
+                }).then(
+                    function mySucces(response) {
+                        console.log("Settings Service response - " + JSON.stringify(response.data));
+                        $scope.fwMessage = 'Save successful...';                        
+                    },
+                    function myError(response) {
+                        console.log("ERROR - " + response.status + " - " + JSON.stringify(response.data));
+                        $scope.fwMessage = 'ERROR - ' + response.status + " - " + JSON.stringify(response.data);
+                    }
+                );
+                $http({
+                    method: "PUT",
+                    url: "<%=serverDetails%>/saveStub",
+                    data : JSON.parse($scope.stub)
+                }).then(
+                    function mySucces(response) {
+                        console.log("Settings Service response - " + JSON.stringify(response.data));
+                        $scope.stubMessage = 'Save successful...';                        
+                    },
+                    function myError(response) {
+                        console.log("ERROR - " + response.status + " - " + JSON.stringify(response.data));
+                        $scope.stubMessage = 'ERROR - ' + response.status + " - " + JSON.stringify(response.data);
+                    }
+                );
+            };
+            $scope.getLogs = function() {
+                // console.log("getLogs() called...");
+                $http({
+                    method: "GET",
+                    url: "<%=serverDetails%>/serverActivity"
+                }).then(
+                    function mySucces(response) {
+                        // console.log("Logs from server - " + JSON.stringify(response.data));
+                        var _empty = response.data.STATUS;
+                        if(!_empty) {
+                            if(!$scope.logs) {
+                                $scope.logs = JSON.stringify(response.data, undefined, 4);
+                            }
+                            else {
+                                $scope.logs = $scope.logs +
+                                 "\n_____________________________\n\n" +
+                                 JSON.stringify(response.data, undefined, 4);
+                            }
+                        }
+                    },
+                    function myError(response) {                        
+                    }
+                );
+            };
+            $scope.startStreamingLogs = function() {
+                window.setInterval(function(){
+                    // console.log("I am time...");
+                    $scope.getLogs();
+                }, 1000);
+            };
+        });
+    </script>
+</head>
+
+<body>
+    <div data-ng-controller="MainController" data-ng-init="fetch()">
+        <div>
+            <br/>
+            &nbsp;&nbsp;
+            <input type="button" id="fetch" name="fetch" value="Fetch" data-ng-click="fetch()" />
+            &nbsp;&nbsp;
+            <input type="button" id="save" name="save" value="Save" data-ng-click="save()" />
+            &nbsp;&nbsp;
+            <input type="button" id="log" name="log" value="Stream Server Activity" data-ng-click="startStreamingLogs()" />
+        </div>
+        <table>
+            <tr>    
+                <td>
+                    <!-- Forwarding Settings -->
+                    <br/>
+                    <br/>
+                    <label>Request Forwarding Settings : </label>
+                    <br/>
+                    <br/>
+                    {{fwMessage}}
+                    <br/>
+                    <br/>
+                    <textarea rows="25" cols="80" data-ng-model="fwSettings" placeholder="Click on fetch to populate...">
+                    </textarea>
+                    <br/>
+                    <br/>
+                </td>
+                <td>
+                    <!-- Stub -->
+                    <br/>
+                    <br/>
+                    <label>Stub Settings : </label>
+                    <br/>
+                    <br/>
+                    {{stubMessage}}
+                    <br/>
+                    <br/>
+                    <textarea rows="25" cols="80" data-ng-model="stub" placeholder="Click on fetch to populate...">
+                    </textarea>
+                    <br/>
+                    <br/>
+                </td>
+            </tr>
+        </table>
+        <div id = "logsDiv">
+            <br/>
+            SERVER ACTIVITY
+            <hr/>
+            <div id = "logsArea">
+                <pre><code>{{logs}}</code></pre>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+        var _isActivityStreamAvailable = "<%=enableQueue%>";
+        console.log("_isActivityStreamAvailable = " + _isActivityStreamAvailable);
+        if(_isActivityStreamAvailable === "true") {
+            document.getElementById("log").disabled = true;
+        }
+</script>        
+
+</html>

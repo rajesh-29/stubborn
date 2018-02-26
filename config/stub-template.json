@@ -1,0 +1,13 @@
+{
+    "/api/Stub#12345": {
+      "Response": {
+        "ADDRESS1": "1234 ABC Road",
+        "POSTAL_CODE": "56789",
+        "STATE": "ARIZONA"
+      }
+    },
+    "/api/stub/StubApi": {
+      "Sample": "Value",
+      "Value": "XYsdfadf"
+    }
+  }

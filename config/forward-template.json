@@ -1,0 +1,6 @@
+{
+    "/api/test/ForwardApiOne": "http://10.4.52.196:75/test/ForwardApiOne",
+    "/api/test/ForwardApiTwo": "http://10.4.52.196:75/test/ForwardApiTwo",
+    "/api/test/ForwardApiThree": "http://10.4.52.196:75/test/ForwardApiThree",
+    "/api/test/ForwardApiFour": "http://10.4.52.196:75/test/ForwardApiFour"
+}
